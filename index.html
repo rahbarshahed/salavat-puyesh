@@ -622,6 +622,16 @@
                 <button class="btn-add-number" id="addNumberBtn">عدد دلخواه</button>
                 <button class="btn-undo" id="undoBtn" disabled>↺ برگشت</button>
             </div>
+                        <div class="custom-group" style="margin-top:8px;">
+                <label>➖</label>
+                <input type="text" inputmode="numeric" id="subtractInput" placeholder="کسر عدد (مدیر)" value="">
+                <button class="btn-add-number" id="subtractBtn" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;">➖ کسر از جمع کل (مدیر)</button>
+            </div>
+            <div class="custom-group" style="margin-top:8px;">
+    <label>➖</label>
+    <input type="text" inputmode="numeric" id="subtractInput" placeholder="کسر عدد (مدیر)" value="">
+    <button class="btn-add-number" id="subtractBtn" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;">➖ کسر از جمع کل (مدیر)</button>
+</div>
         </div>
 
         <div class="counters-column">
@@ -1027,7 +1037,74 @@
                 document.getElementById('statusMsg').style.color = '#ff6b6b';
             }
         }
+        // ============================================================
+        //  کسر عدد دلخواه از جمع کل (فقط مدیر)
+        // ============================================================
+        async function subtractCustom() {
+            const rawValue = document.getElementById('subtractInput').value;
+            const cleaned = toEnglishDigits(rawValue);
+            const numberToSub = parseInt(cleaned, 10);
 
+            if (isNaN(numberToSub) || numberToSub <= 0) {
+                document.getElementById('statusMsg').innerHTML = '⚠️ لطفاً یک عدد صحیح و بزرگتر از صفر وارد کن!';
+                document.getElementById('statusMsg').style.color = '#f1c40f';
+                return;
+            }
+            if (numberToSub > 100000000) {
+                document.getElementById('statusMsg').innerHTML = '⚠️ عدد خیلی بزرگ است!';
+                document.getElementById('statusMsg').style.color = '#e74c3c';
+                return;
+            }
+
+            // رمز مدیریت الزامی
+            const pwd = await askPassword('🔑 رمز مدیریت برای کسر ' + numberToSub.toLocaleString('fa-IR') + ' ' + TABS_CONFIG[activeTab].name + ':');
+            if (pwd === null) return;
+            if (String(pwd).trim() !== ADMIN_PASSWORD) {
+                document.getElementById('statusMsg').innerHTML = '❌ رمز اشتباه!';
+                document.getElementById('statusMsg').style.color = '#e74c3c';
+                return;
+            }
+
+            const record = await fetchData();
+            if (!record) {
+                document.getElementById('statusMsg').innerHTML = '❌ خطا در اتصال به دیتابیس!';
+                document.getElementById('statusMsg').style.color = '#e74c3c';
+                return;
+            }
+
+            const cfg = TABS_CONFIG[activeTab];
+            const total = Number(currentData[cfg.totalKey]) || 0;
+
+            if (total < numberToSub) {
+                document.getElementById('statusMsg').innerHTML = '⚠️ عدد وارد شده از جمع کل بیشتره! (جمع کل فعلی: ' + total.toLocaleString('fa-IR') + ')';
+                document.getElementById('statusMsg').style.color = '#e74c3c';
+                return;
+            }
+
+            const ok = await askConfirm('⚠️ آیا مطمئنید که می‌خواهید ' + numberToSub.toLocaleString('fa-IR') + ' ' + cfg.name + ' از جمع کل کم کنید؟\n\n✅ فقط جمع کل کم می‌شه.\n❌ امروز دست نمی‌خوره.');
+            if (!ok) return;
+
+            document.getElementById('statusMsg').innerHTML = '⏳ در حال کسر...';
+            document.getElementById('statusMsg').style.color = '#ffd700';
+
+            const newData = {};
+            newData[cfg.totalKey] = total - numberToSub;
+
+            const success = await updateData(newData);
+            if (success) {
+                lastAddedValue = 0;
+                undoCount = 0;
+                updateDisplay();
+                animateCounter(document.getElementById('totalCount'));
+                if (cfg.hasTarget) animateCounter(document.getElementById('remainingCount'));
+                document.getElementById('statusMsg').innerHTML = '➖ ' + numberToSub.toLocaleString('fa-IR') + ' ' + cfg.name + ' از جمع کل کسر شد.';
+                document.getElementById('statusMsg').style.color = '#e74c3c';
+                document.getElementById('subtractInput').value = '';
+            } else {
+                document.getElementById('statusMsg').innerHTML = '❌ خطا در کسر!';
+                document.getElementById('statusMsg').style.color = '#e74c3c';
+            }
+        }
         async function dailyResetCurrent() {
             const cfg = TABS_CONFIG[activeTab];
             const pwd = await askPassword('🔑 رمز مدیریت برای ریست روزانه «' + cfg.name + '»:');
@@ -1406,6 +1483,7 @@
             });
 
             document.getElementById('addNumberBtn').onclick = addCustom;
+                        document.getElementById('subtractBtn').onclick = subtractCustom;
             document.getElementById('addInput').addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
