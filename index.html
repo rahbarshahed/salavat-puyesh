@@ -1168,7 +1168,7 @@
             const hour = now.getHours();
             const today = now.toISOString().slice(0, 10);
 
-            if (hour < 2) return;
+            if (hour < 24) return;  // ← تست: همیشه اجرا بشه
 
             const lastResetDate = localStorage.getItem('salavat_last_auto_reset') || '';
             if (lastResetDate === today) return;
