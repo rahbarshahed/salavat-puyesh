@@ -622,8 +622,7 @@
                 <button class="btn-add-number" id="addNumberBtn">عدد دلخواه</button>
                 <button class="btn-undo" id="undoBtn" disabled>↺ برگشت</button>
             </div>
-     
-              </div>
+        </div>
 
         <div class="counters-column">
             <div class="counter-box gold">
@@ -657,11 +656,26 @@
             <span><span class="label">⏰ ساعت:</span> <span class="value" id="timeDisplay"></span></span>
             <span class="night-badge" id="nightBadge">🌙 پویش روز</span>
         </div>
-      <div class="custom-group" style="margin-top:8px;">
-    <label>➖</label>
-    <input type="text" inputmode="numeric" id="subtractInput" placeholder="کسر عدد (مدیر)" value="">
-    <button class="btn-add-number" id="subtractBtn" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;">➖ کسر از جمع کل (مدیر)</button>
-</div>
+
+        <!-- بخش مدیریت — تنظیمات خودکار شبانه -->
+        <div style="margin-top:20px; padding-top:15px; border-top:2px dashed rgba(93,46,12,0.2);">
+            <div style="color:#c0392b; font-weight:bold; margin-bottom:10px; font-size:0.95rem;">🔒 بخش مدیریت — تنظیمات خودکار شبانه</div>
+
+            <div class="custom-group" style="margin-bottom:10px;">
+                <label>⚙️ افزایش خودکار شبانه:</label>
+                <input type="text" inputmode="numeric" id="autoAddInput" placeholder="مثلاً ۱۰۰۰۰" value="">
+                <button class="btn-add-number" id="autoAddSaveBtn" style="background: linear-gradient(135deg, #16a085, #0e6655); color: white;">💾 ذخیره تنظیم</button>
+            </div>
+            <div style="font-size:0.8rem; color:#8899aa; margin-bottom:15px;">
+                هر شب ساعت ۲ بامداد، بعد از ریست صلوات‌های امروز، این عدد یک‌بار به صلوات‌های امروز اضافه می‌شود.
+            </div>
+
+            <div class="custom-group" style="margin-top:15px;">
+                <label>➖</label>
+                <input type="text" inputmode="numeric" id="subtractInput" placeholder="کسر عدد (مدیر)" value="">
+                <button class="btn-add-number" id="subtractBtn" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;">➖ کسر از جمع کل (مدیر)</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -824,7 +838,8 @@
                         estegfar_total: 0, estegfar_night: 0,
                         doa14_total: 0, doa14_night: 0,
                         fath_total: 0, fath_night: 0,
-                        tavasol_total: 0, tavasol_night: 0
+                        tavasol_total: 0, tavasol_night: 0,
+                        auto_add_on_reset: 0
                     })
                 });
                 if (!response.ok) throw new Error('Create failed');
@@ -900,6 +915,12 @@
             } else {
                 undoBtn.disabled = true;
                 undoBtn.style.opacity = '0.3';
+            }
+
+            // نمایش مقدار فعلی افزایش خودکار
+            const autoAddInput = document.getElementById('autoAddInput');
+            if (autoAddInput && !autoAddInput.value) {
+                autoAddInput.placeholder = 'فعلی: ' + ((Number(currentData.auto_add_on_reset) || 0).toLocaleString('fa-IR'));
             }
         }
 
@@ -1033,6 +1054,7 @@
                 document.getElementById('statusMsg').style.color = '#ff6b6b';
             }
         }
+
         // ============================================================
         //  کسر عدد دلخواه از جمع کل (فقط مدیر)
         // ============================================================
@@ -1052,7 +1074,6 @@
                 return;
             }
 
-            // رمز مدیریت الزامی
             const pwd = await askPassword('🔑 رمز مدیریت برای کسر ' + numberToSub.toLocaleString('fa-IR') + ' ' + TABS_CONFIG[activeTab].name + ':');
             if (pwd === null) return;
             if (String(pwd).trim() !== ADMIN_PASSWORD) {
@@ -1101,6 +1122,85 @@
                 document.getElementById('statusMsg').style.color = '#e74c3c';
             }
         }
+
+        // ============================================================
+        //  ذخیره مقدار افزایش خودکار شبانه
+        // ============================================================
+        async function saveAutoAdd() {
+            const rawValue = document.getElementById('autoAddInput').value;
+            const cleaned = toEnglishDigits(rawValue);
+            const val = parseInt(cleaned, 10);
+
+            if (isNaN(val) || val < 0) {
+                document.getElementById('statusMsg').innerHTML = '⚠️ لطفاً یک عدد صحیح و بزرگتر یا مساوی صفر وارد کن!';
+                document.getElementById('statusMsg').style.color = '#f1c40f';
+                return;
+            }
+
+            const pwd = await askPassword('🔑 رمز مدیریت برای ذخیره افزایش خودکار:');
+            if (pwd === null) return;
+            if (String(pwd).trim() !== ADMIN_PASSWORD) {
+                document.getElementById('statusMsg').innerHTML = '❌ رمز اشتباه!';
+                document.getElementById('statusMsg').style.color = '#e74c3c';
+                return;
+            }
+
+            const ok = await askConfirm('آیا مطمئنید که می‌خواهید افزایش خودکار شبانه را روی ' + val.toLocaleString('fa-IR') + ' تنظیم کنید؟');
+            if (!ok) return;
+
+            const success = await updateData({ auto_add_on_reset: val });
+            if (success) {
+                document.getElementById('statusMsg').innerHTML = '✅ افزایش خودکار شبانه روی ' + val.toLocaleString('fa-IR') + ' ذخیره شد.';
+                document.getElementById('statusMsg').style.color = '#16a085';
+                document.getElementById('autoAddInput').value = '';
+                document.getElementById('autoAddInput').placeholder = 'فعلی: ' + val.toLocaleString('fa-IR');
+            } else {
+                document.getElementById('statusMsg').innerHTML = '❌ خطا در ذخیره!';
+                document.getElementById('statusMsg').style.color = '#e74c3c';
+            }
+        }
+
+        // ============================================================
+        //  ریست خودکار شبانه ساعت ۲ بامداد + افزایش خودکار
+        // ============================================================
+        async function checkAndAutoReset() {
+            const now = new Date();
+            const hour = now.getHours();
+            const today = now.toISOString().slice(0, 10);
+
+            if (hour < 2) return;
+
+            const lastResetDate = localStorage.getItem('salavat_last_auto_reset') || '';
+            if (lastResetDate === today) return;
+
+            const record = await fetchData();
+            if (!record) return;
+
+            const autoAdd = Number(currentData.auto_add_on_reset) || 0;
+            const nightFields = ['night', 'estegfar_night', 'doa14_night', 'fath_night', 'tavasol_night'];
+            const anyNonZero = nightFields.some(f => (Number(currentData[f]) || 0) > 0);
+            if (!anyNonZero && autoAdd === 0) {
+                localStorage.setItem('salavat_last_auto_reset', today);
+                return;
+            }
+
+            const newData = {};
+            nightFields.forEach(f => { newData[f] = 0; });
+
+            if (autoAdd > 0) {
+                newData.night = autoAdd;
+                newData.total = (Number(currentData.total) || 0) + autoAdd;
+            }
+
+            const success = await updateData(newData);
+            if (success) {
+                localStorage.setItem('salavat_last_auto_reset', today);
+                updateDisplay();
+                document.getElementById('statusMsg').innerHTML = '🌙 ریست خودکار شبانه انجام شد' + (autoAdd > 0 ? ' + ' + autoAdd.toLocaleString('fa-IR') + ' صلوات به امروز اضافه شد.' : '.');
+                document.getElementById('statusMsg').style.color = '#f39c12';
+            }
+        }
+
         async function dailyResetCurrent() {
             const cfg = TABS_CONFIG[activeTab];
             const pwd = await askPassword('🔑 رمز مدیریت برای ریست روزانه «' + cfg.name + '»:');
@@ -1160,7 +1260,6 @@
                         <button class="admin-tab" data-atab="tools">🛠️ ابزارها</button>
                     </div>
 
-                    <!-- تب نمایش آمار -->
                     <div class="admin-section active" id="atab-view">
                         <div class="admin-stats-grid">
                             <div class="admin-stat-card">
@@ -1191,57 +1290,24 @@
                         </div>
                     </div>
 
-                    <!-- تب ویرایش اعداد -->
                     <div class="admin-section" id="atab-edit">
                         <p class="admin-help">⚠️ این اعداد جایگزین مقادیر فعلی می‌شن. اگه نمی‌خوای عوض کنی، خالی بذار.</p>
-                        <div class="edit-row">
-                            <label>🕌 جمع کل صلوات</label>
-                            <input type="text" id="edit_total" placeholder="${d.total || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>🌙 صلوات امروز</label>
-                            <input type="text" id="edit_night" placeholder="${d.night || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>🤲 جمع کل استغفار</label>
-                            <input type="text" id="edit_estegfar_total" placeholder="${d.estegfar_total || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>🌙 استغفار امروز</label>
-                            <input type="text" id="edit_estegfar_night" placeholder="${d.estegfar_night || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>📖 جمع کل دعای ۱۴</label>
-                            <input type="text" id="edit_doa14_total" placeholder="${d.doa14_total || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>🌙 دعای ۱۴ امروز</label>
-                            <input type="text" id="edit_doa14_night" placeholder="${d.doa14_night || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>📗 جمع کل سوره فتح</label>
-                            <input type="text" id="edit_fath_total" placeholder="${d.fath_total || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>🌙 سوره فتح امروز</label>
-                            <input type="text" id="edit_fath_night" placeholder="${d.fath_night || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>🤲 جمع کل دعای توسل</label>
-                            <input type="text" id="edit_tavasol_total" placeholder="${d.tavasol_total || 0}" value="">
-                        </div>
-                        <div class="edit-row">
-                            <label>🌙 دعای توسل امروز</label>
-                            <input type="text" id="edit_tavasol_night" placeholder="${d.tavasol_night || 0}" value="">
-                        </div>
+                        <div class="edit-row"><label>🕌 جمع کل صلوات</label><input type="text" id="edit_total" placeholder="${d.total || 0}" value=""></div>
+                        <div class="edit-row"><label>🌙 صلوات امروز</label><input type="text" id="edit_night" placeholder="${d.night || 0}" value=""></div>
+                        <div class="edit-row"><label>🤲 جمع کل استغفار</label><input type="text" id="edit_estegfar_total" placeholder="${d.estegfar_total || 0}" value=""></div>
+                        <div class="edit-row"><label>🌙 استغفار امروز</label><input type="text" id="edit_estegfar_night" placeholder="${d.estegfar_night || 0}" value=""></div>
+                        <div class="edit-row"><label>📖 جمع کل دعای ۱۴</label><input type="text" id="edit_doa14_total" placeholder="${d.doa14_total || 0}" value=""></div>
+                        <div class="edit-row"><label>🌙 دعای ۱۴ امروز</label><input type="text" id="edit_doa14_night" placeholder="${d.doa14_night || 0}" value=""></div>
+                        <div class="edit-row"><label>📗 جمع کل سوره فتح</label><input type="text" id="edit_fath_total" placeholder="${d.fath_total || 0}" value=""></div>
+                        <div class="edit-row"><label>🌙 سوره فتح امروز</label><input type="text" id="edit_fath_night" placeholder="${d.fath_night || 0}" value=""></div>
+                        <div class="edit-row"><label>🤲 جمع کل دعای توسل</label><input type="text" id="edit_tavasol_total" placeholder="${d.tavasol_total || 0}" value=""></div>
+                        <div class="edit-row"><label>🌙 دعای توسل امروز</label><input type="text" id="edit_tavasol_night" placeholder="${d.tavasol_night || 0}" value=""></div>
                         <div class="admin-divider"></div>
                         <button class="admin-btn admin-btn-primary" onclick="saveEditNumbers()">💾 ذخیره تغییرات</button>
                     </div>
 
-                    <!-- تب ریست -->
                     <div class="admin-section" id="atab-reset">
                         <p class="admin-help">⚠️ برای ریست، ابتدا یک یا چند گزینه رو انتخاب کن، بعد دکمه‌ی ریست رو بزن.</p>
-
                         <h4 style="color:#5d2e0c; margin-bottom:10px; text-align:right;">امروز (شمارنده‌های شبانه):</h4>
                         <div class="reset-grid">
                             <div class="reset-item" data-reset="night">🌙 صلوات امروز</div>
@@ -1250,7 +1316,6 @@
                             <div class="reset-item" data-reset="fath_night">🌙 سوره فتح امروز</div>
                             <div class="reset-item" data-reset="tavasol_night">🌙 دعای توسل امروز</div>
                         </div>
-
                         <h4 style="color:#5d2e0c; margin:15px 0 10px; text-align:right;">جمع کل:</h4>
                         <div class="reset-grid">
                             <div class="reset-item" data-reset="total">🕌 جمع کل صلوات</div>
@@ -1259,12 +1324,10 @@
                             <div class="reset-item" data-reset="fath_total">📗 جمع کل سوره فتح</div>
                             <div class="reset-item" data-reset="tavasol_total">🤲 جمع کل دعای توسل</div>
                         </div>
-
                         <div class="admin-divider"></div>
                         <button class="admin-btn admin-btn-danger" onclick="applyReset()">🔄 ریست موارد انتخاب‌شده</button>
                     </div>
 
-                    <!-- تب ابزارها -->
                     <div class="admin-section" id="atab-tools">
                         <p class="admin-help">ابزارهای مدیریتی</p>
                         <div style="display:flex; flex-direction:column; gap:10px; align-items:stretch;">
@@ -1282,7 +1345,6 @@
             `;
             document.body.appendChild(panel);
 
-            // تب‌های داخلی
             panel.querySelectorAll('.admin-tab').forEach(tab => {
                 tab.onclick = () => {
                     panel.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
@@ -1292,7 +1354,6 @@
                 };
             });
 
-            // آیتم‌های ریست
             panel.querySelectorAll('.reset-item').forEach(item => {
                 item.onclick = () => item.classList.toggle('selected');
             });
@@ -1452,7 +1513,6 @@
             const container = document.getElementById('mainContainer');
             const dbStatus = document.getElementById('dbStatus');
 
-            // بازیابی رمز مدیریت از localStorage
             const savedPwd = localStorage.getItem('salavat_admin_pwd');
             if (savedPwd) ADMIN_PASSWORD = savedPwd;
 
@@ -1479,7 +1539,9 @@
             });
 
             document.getElementById('addNumberBtn').onclick = addCustom;
-                        document.getElementById('subtractBtn').onclick = subtractCustom;
+            document.getElementById('subtractBtn').onclick = subtractCustom;
+            document.getElementById('autoAddSaveBtn').onclick = saveAutoAdd;
+
             document.getElementById('addInput').addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1488,6 +1550,10 @@
             });
 
             document.getElementById('undoBtn').onclick = undoLast;
+
+            // شروع تایمر ریست خودکار شبانه
+            checkAndAutoReset();
+            setInterval(checkAndAutoReset, 30000);
         }
 
         init();
