@@ -1169,37 +1169,84 @@
             const today = now.toISOString().slice(0, 10);
 
             if (hour < 2) return;
+
             const lastResetDate = localStorage.getItem('salavat_last_auto_reset') || '';
             if (lastResetDate === today) return;
 
             const record = await fetchData();
             if (!record) return;
 
-            const autoAdd = Number(currentData.auto_add_on_reset) || 0;
-            const nightFields = ['night', 'estegfar_night', 'doa14_night', 'fath_night', 'tavasol_night'];
-            const anyNonZero = nightFields.some(f => (Number(currentData[f]) || 0) > 0);
-            if (!anyNonZero && autoAdd === 0) {
-                localStorage.setItem('salavat_last_auto_reset', today);
-                return;
+            const newData = {};
+            let hasChange = false;
+
+            // صلوات
+            const autoSalavat = Number(currentData.auto_add_salavat) || 0;
+            const nightSalavat = Number(currentData.night) || 0;
+            if (nightSalavat > 0 || autoSalavat > 0) {
+                newData.night = autoSalavat;
+                if (autoSalavat > 0) {
+                    newData.total = (Number(currentData.total) || 0) + autoSalavat;
+                }
+                hasChange = true;
             }
 
-            const newData = {};
-            nightFields.forEach(f => { newData[f] = 0; });
+            // استغفار
+            const autoEstegfar = Number(currentData.auto_add_estegfar) || 0;
+            const nightEstegfar = Number(currentData.estegfar_night) || 0;
+            if (nightEstegfar > 0 || autoEstegfar > 0) {
+                newData.estegfar_night = autoEstegfar;
+                if (autoEstegfar > 0) {
+                    newData.estegfar_total = (Number(currentData.estegfar_total) || 0) + autoEstegfar;
+                }
+                hasChange = true;
+            }
 
-            if (autoAdd > 0) {
-                newData.night = autoAdd;
-                newData.total = (Number(currentData.total) || 0) + autoAdd;
+            // دعای ۱۴
+            const autoDoa14 = Number(currentData.auto_add_doa14) || 0;
+            const nightDoa14 = Number(currentData.doa14_night) || 0;
+            if (nightDoa14 > 0 || autoDoa14 > 0) {
+                newData.doa14_night = autoDoa14;
+                if (autoDoa14 > 0) {
+                    newData.doa14_total = (Number(currentData.doa14_total) || 0) + autoDoa14;
+                }
+                hasChange = true;
+            }
+
+            // سوره فتح
+            const autoFath = Number(currentData.auto_add_fath) || 0;
+            const nightFath = Number(currentData.fath_night) || 0;
+            if (nightFath > 0 || autoFath > 0) {
+                newData.fath_night = autoFath;
+                if (autoFath > 0) {
+                    newData.fath_total = (Number(currentData.fath_total) || 0) + autoFath;
+                }
+                hasChange = true;
+            }
+
+            // دعای توسل
+            const autoTavasol = Number(currentData.auto_add_tavasol) || 0;
+            const nightTavasol = Number(currentData.tavasol_night) || 0;
+            if (nightTavasol > 0 || autoTavasol > 0) {
+                newData.tavasol_night = autoTavasol;
+                if (autoTavasol > 0) {
+                    newData.tavasol_total = (Number(currentData.tavasol_total) || 0) + autoTavasol;
+                }
+                hasChange = true;
+            }
+
+            if (!hasChange) {
+                localStorage.setItem('salavat_last_auto_reset', today);
+                return;
             }
 
             const success = await updateData(newData);
             if (success) {
                 localStorage.setItem('salavat_last_auto_reset', today);
                 updateDisplay();
-                document.getElementById('statusMsg').innerHTML = '🌙 ریست خودکار شبانه انجام شد' + (autoAdd > 0 ? ' + ' + autoAdd.toLocaleString('fa-IR') + ' صلوات به امروز اضافه شد.' : '.');
+                document.getElementById('statusMsg').innerHTML = '🌙 ریست خودکار شبانه با موفقیت انجام شد.';
                 document.getElementById('statusMsg').style.color = '#f39c12';
             }
         }
-
         async function dailyResetCurrent() {
             const cfg = TABS_CONFIG[activeTab];
             const pwd = await askPassword('🔑 رمز مدیریت برای ریست روزانه «' + cfg.name + '»:');
