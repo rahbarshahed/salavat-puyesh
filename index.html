@@ -1192,18 +1192,20 @@
         // ============================================================
         //  ریست خودکار شبانه ساعت ۲ بامداد (برای هر تب جداگانه)
         // ============================================================
-        async function checkAndAutoReset() {
+            async function checkAndAutoReset() {
             const now = new Date();
             const hour = now.getHours();
             const today = now.toISOString().slice(0, 10);
 
+            // فقط اگه ساعت ۲ بامداد یا بعد از اون باشه
             if (hour < 2) return;
-
-            const lastResetDate = localStorage.getItem('salavat_last_auto_reset') || '';
-            if (lastResetDate === today) return;
 
             const record = await fetchData();
             if (!record) return;
+
+            // 🎯 چک کن توی دیتابیس، امروز ریست شده یا نه
+            const lastResetDate = currentData.last_auto_reset || '';
+            if (lastResetDate === today) return; // امروز قبلاً ریست شده
 
             const newData = {};
             let hasChange = false;
@@ -1223,6 +1225,22 @@
                 }
             }
 
+            // 🎯 تاریخ امروز رو در دیتابیس ذخیره کن
+            newData.last_auto_reset = today;
+
+            if (!hasChange) {
+                // اگه هیچی تغییر نکرد، فقط تاریخ رو ذخیره کن
+                await updateData({ last_auto_reset: today });
+                return;
+            }
+
+            const success = await updateData(newData);
+            if (success) {
+                updateDisplay();
+                document.getElementById('statusMsg').innerHTML = '🌙 ریست خودکار شبانه با موفقیت انجام شد.';
+                document.getElementById('statusMsg').style.color = '#f39c12';
+            }
+        }
             if (!hasChange) {
                 localStorage.setItem('salavat_last_auto_reset', today);
                 return;
