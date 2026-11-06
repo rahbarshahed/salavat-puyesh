@@ -662,12 +662,37 @@
             <div style="color:#c0392b; font-weight:bold; margin-bottom:10px; font-size:0.95rem;">🔒 بخش مدیریت — تنظیمات خودکار شبانه</div>
 
             <div class="custom-group" style="margin-bottom:10px;">
-                <label>⚙️ افزایش خودکار شبانه:</label>
-                <input type="text" inputmode="numeric" id="autoAddInput" placeholder="مثلاً ۱۰۰۰۰" value="">
-                <button class="btn-add-number" id="autoAddSaveBtn" style="background: linear-gradient(135deg, #16a085, #0e6655); color: white;">💾 ذخیره تنظیم</button>
+                <label>🕌 افزایش خودکار صلوات:</label>
+                <input type="text" inputmode="numeric" id="autoAddSalavatInput" placeholder="مثلاً ۱۰۰۰۰" value="">
+                <button class="btn-add-number" id="autoAddSalavatBtn" style="background: linear-gradient(135deg, #16a085, #0e6655); color: white;">💾 ذخیره</button>
             </div>
+
+            <div class="custom-group" style="margin-bottom:10px;">
+                <label>🤲 افزایش خودکار استغفار:</label>
+                <input type="text" inputmode="numeric" id="autoAddEstegfarInput" placeholder="مثلاً ۱۰۰۰" value="">
+                <button class="btn-add-number" id="autoAddEstegfarBtn" style="background: linear-gradient(135deg, #16a085, #0e6655); color: white;">💾 ذخیره</button>
+            </div>
+
+            <div class="custom-group" style="margin-bottom:10px;">
+                <label>📖 افزایش خودکار دعای ۱۴:</label>
+                <input type="text" inputmode="numeric" id="autoAddDoa14Input" placeholder="مثلاً ۱۴" value="">
+                <button class="btn-add-number" id="autoAddDoa14Btn" style="background: linear-gradient(135deg, #16a085, #0e6655); color: white;">💾 ذخیره</button>
+            </div>
+
+            <div class="custom-group" style="margin-bottom:10px;">
+                <label>📗 افزایش خودکار سوره فتح:</label>
+                <input type="text" inputmode="numeric" id="autoAddFathInput" placeholder="مثلاً ۲۹" value="">
+                <button class="btn-add-number" id="autoAddFathBtn" style="background: linear-gradient(135deg, #16a085, #0e6655); color: white;">💾 ذخیره</button>
+            </div>
+
+            <div class="custom-group" style="margin-bottom:15px;">
+                <label>🤲 افزایش خودکار دعای توسل:</label>
+                <input type="text" inputmode="numeric" id="autoAddTavasolInput" placeholder="مثلاً ۱۰۰" value="">
+                <button class="btn-add-number" id="autoAddTavasolBtn" style="background: linear-gradient(135deg, #16a085, #0e6655); color: white;">💾 ذخیره</button>
+            </div>
+
             <div style="font-size:0.8rem; color:#8899aa; margin-bottom:15px;">
-                هر شب ساعت ۲ بامداد، بعد از ریست صلوات‌های امروز، این عدد یک‌بار به صلوات‌های امروز اضافه می‌شود.
+                هر شب ساعت ۲ بامداد، شمارنده‌های امروز صفر می‌شن و اعداد بالا بهشون اضافه می‌شن.
             </div>
 
             <div class="custom-group" style="margin-top:15px;">
@@ -679,17 +704,11 @@
     </div>
 
     <script>
-        // ============================================================
-        //  تنظیمات Supabase
-        // ============================================================
         const SUPABASE_URL = 'https://komdiuxetdrjjpajbjge.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k0sc4ZeFEsPeQ1b3XDjmPw_GIbm_-Dp';
         const TABLE_NAME = 'salavat_data';
         let ADMIN_PASSWORD = '5113';
 
-        // ============================================================
-        //  توابع کمکی
-        // ============================================================
         function toEnglishDigits(str) {
             if (!str) return '';
             const persian = '۰۱۲۳۴۵۶۷۸۹';
@@ -757,7 +776,7 @@
         const TABS_CONFIG = {
             salavat: {
                 name: 'صلوات', mainTitle: '🕌 پویش بزرگ ۵۰۰ میلیون صلوات',
-                totalKey: 'total', nightKey: 'night',
+                totalKey: 'total', nightKey: 'night', autoAddKey: 'auto_add_salavat',
                 hasTarget: true, target: 500000000,
                 buttons: [5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000],
                 totalLabel: '✨ جمع کل صلوات', nightLabel: '🌙 صلوات‌های امروز',
@@ -765,28 +784,28 @@
             },
             estegfar: {
                 name: 'استغفار', mainTitle: 'أستغفر الله ربی و أتوب إلیه',
-                totalKey: 'estegfar_total', nightKey: 'estegfar_night',
+                totalKey: 'estegfar_total', nightKey: 'estegfar_night', autoAddKey: 'auto_add_estegfar',
                 hasTarget: false,
                 buttons: [5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000],
                 totalLabel: '✨ جمع کل استغفار', nightLabel: '🌙 استغفارهای امروز'
             },
             doa14: {
                 name: 'دعای ۱۴ صحیفه', mainTitle: 'دعای ۱۴ صحیفه: يَا مَنْ لَا يَخْفَى عَلَيْهِ أَنْبَاءُ الْمُتَظَلِّمِينَ ...',
-                totalKey: 'doa14_total', nightKey: 'doa14_night',
+                totalKey: 'doa14_total', nightKey: 'doa14_night', autoAddKey: 'auto_add_doa14',
                 hasTarget: false,
                 buttons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 totalLabel: '✨ جمع کل دعای ۱۴', nightLabel: '🌙 دعای ۱۴ امروز'
             },
             fath: {
                 name: 'سوره فتح', mainTitle: 'سوره مبارکه فتح: ۲۹ آیه',
-                totalKey: 'fath_total', nightKey: 'fath_night',
+                totalKey: 'fath_total', nightKey: 'fath_night', autoAddKey: 'auto_add_fath',
                 hasTarget: false,
                 buttons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 totalLabel: '✨ جمع کل سوره فتح', nightLabel: '🌙 سوره فتح امروز'
             },
             tavasol: {
                 name: 'دعای توسل', mainTitle: 'توسل به ۱۴ معصوم علیهم السلام',
-                totalKey: 'tavasol_total', nightKey: 'tavasol_night',
+                totalKey: 'tavasol_total', nightKey: 'tavasol_night', autoAddKey: 'auto_add_tavasol',
                 hasTarget: false,
                 buttons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 totalLabel: '✨ جمع کل دعای توسل', nightLabel: '🌙 دعای توسل امروز'
@@ -839,7 +858,8 @@
                         doa14_total: 0, doa14_night: 0,
                         fath_total: 0, fath_night: 0,
                         tavasol_total: 0, tavasol_night: 0,
-                        auto_add_on_reset: 0
+                        auto_add_salavat: 0, auto_add_estegfar: 0,
+                        auto_add_doa14: 0, auto_add_fath: 0, auto_add_tavasol: 0
                     })
                 });
                 if (!response.ok) throw new Error('Create failed');
@@ -918,9 +938,18 @@
             }
 
             // نمایش مقدار فعلی افزایش خودکار
-            const autoAddInput = document.getElementById('autoAddInput');
-            if (autoAddInput && !autoAddInput.value) {
-                autoAddInput.placeholder = 'فعلی: ' + ((Number(currentData.auto_add_on_reset) || 0).toLocaleString('fa-IR'));
+            const autoInputs = {
+                'autoAddSalavatInput': currentData.auto_add_salavat,
+                'autoAddEstegfarInput': currentData.auto_add_estegfar,
+                'autoAddDoa14Input': currentData.auto_add_doa14,
+                'autoAddFathInput': currentData.auto_add_fath,
+                'autoAddTavasolInput': currentData.auto_add_tavasol
+            };
+            for (const [id, val] of Object.entries(autoInputs)) {
+                const el = document.getElementById(id);
+                if (el && !el.value) {
+                    el.placeholder = 'فعلی: ' + ((Number(val) || 0).toLocaleString('fa-IR'));
+                }
             }
         }
 
@@ -1055,9 +1084,6 @@
             }
         }
 
-        // ============================================================
-        //  کسر عدد دلخواه از جمع کل (فقط مدیر)
-        // ============================================================
         async function subtractCustom() {
             const rawValue = document.getElementById('subtractInput').value;
             const cleaned = toEnglishDigits(rawValue);
@@ -1124,10 +1150,10 @@
         }
 
         // ============================================================
-        //  ذخیره مقدار افزایش خودکار شبانه
+        //  ذخیره مقدار افزایش خودکار شبانه (برای هر تب جداگانه)
         // ============================================================
-        async function saveAutoAdd() {
-            const rawValue = document.getElementById('autoAddInput').value;
+        async function saveAutoAdd(field, inputId) {
+            const rawValue = document.getElementById(inputId).value;
             const cleaned = toEnglishDigits(rawValue);
             const val = parseInt(cleaned, 10);
 
@@ -1148,12 +1174,15 @@
             const ok = await askConfirm('آیا مطمئنید که می‌خواهید افزایش خودکار شبانه را روی ' + val.toLocaleString('fa-IR') + ' تنظیم کنید؟');
             if (!ok) return;
 
-            const success = await updateData({ auto_add_on_reset: val });
+            const newData = {};
+            newData[field] = val;
+
+            const success = await updateData(newData);
             if (success) {
                 document.getElementById('statusMsg').innerHTML = '✅ افزایش خودکار شبانه روی ' + val.toLocaleString('fa-IR') + ' ذخیره شد.';
                 document.getElementById('statusMsg').style.color = '#16a085';
-                document.getElementById('autoAddInput').value = '';
-                document.getElementById('autoAddInput').placeholder = 'فعلی: ' + val.toLocaleString('fa-IR');
+                document.getElementById(inputId).value = '';
+                document.getElementById(inputId).placeholder = 'فعلی: ' + val.toLocaleString('fa-IR');
             } else {
                 document.getElementById('statusMsg').innerHTML = '❌ خطا در ذخیره!';
                 document.getElementById('statusMsg').style.color = '#e74c3c';
@@ -1161,7 +1190,7 @@
         }
 
         // ============================================================
-        //  ریست خودکار شبانه ساعت ۲ بامداد + افزایش خودکار
+        //  ریست خودکار شبانه ساعت ۲ بامداد (برای هر تب جداگانه)
         // ============================================================
         async function checkAndAutoReset() {
             const now = new Date();
@@ -1179,59 +1208,19 @@
             const newData = {};
             let hasChange = false;
 
-            // صلوات
-            const autoSalavat = Number(currentData.auto_add_salavat) || 0;
-            const nightSalavat = Number(currentData.night) || 0;
-            if (nightSalavat > 0 || autoSalavat > 0) {
-                newData.night = autoSalavat;
-                if (autoSalavat > 0) {
-                    newData.total = (Number(currentData.total) || 0) + autoSalavat;
-                }
-                hasChange = true;
-            }
+            // برای هر تب، ریست + افزایش خودکار
+            for (const tabKey in TABS_CONFIG) {
+                const cfg = TABS_CONFIG[tabKey];
+                const autoAdd = Number(currentData[cfg.autoAddKey]) || 0;
+                const nightVal = Number(currentData[cfg.nightKey]) || 0;
 
-            // استغفار
-            const autoEstegfar = Number(currentData.auto_add_estegfar) || 0;
-            const nightEstegfar = Number(currentData.estegfar_night) || 0;
-            if (nightEstegfar > 0 || autoEstegfar > 0) {
-                newData.estegfar_night = autoEstegfar;
-                if (autoEstegfar > 0) {
-                    newData.estegfar_total = (Number(currentData.estegfar_total) || 0) + autoEstegfar;
+                if (nightVal > 0 || autoAdd > 0) {
+                    newData[cfg.nightKey] = autoAdd;
+                    if (autoAdd > 0) {
+                        newData[cfg.totalKey] = (Number(currentData[cfg.totalKey]) || 0) + autoAdd;
+                    }
+                    hasChange = true;
                 }
-                hasChange = true;
-            }
-
-            // دعای ۱۴
-            const autoDoa14 = Number(currentData.auto_add_doa14) || 0;
-            const nightDoa14 = Number(currentData.doa14_night) || 0;
-            if (nightDoa14 > 0 || autoDoa14 > 0) {
-                newData.doa14_night = autoDoa14;
-                if (autoDoa14 > 0) {
-                    newData.doa14_total = (Number(currentData.doa14_total) || 0) + autoDoa14;
-                }
-                hasChange = true;
-            }
-
-            // سوره فتح
-            const autoFath = Number(currentData.auto_add_fath) || 0;
-            const nightFath = Number(currentData.fath_night) || 0;
-            if (nightFath > 0 || autoFath > 0) {
-                newData.fath_night = autoFath;
-                if (autoFath > 0) {
-                    newData.fath_total = (Number(currentData.fath_total) || 0) + autoFath;
-                }
-                hasChange = true;
-            }
-
-            // دعای توسل
-            const autoTavasol = Number(currentData.auto_add_tavasol) || 0;
-            const nightTavasol = Number(currentData.tavasol_night) || 0;
-            if (nightTavasol > 0 || autoTavasol > 0) {
-                newData.tavasol_night = autoTavasol;
-                if (autoTavasol > 0) {
-                    newData.tavasol_total = (Number(currentData.tavasol_total) || 0) + autoTavasol;
-                }
-                hasChange = true;
             }
 
             if (!hasChange) {
@@ -1247,6 +1236,7 @@
                 document.getElementById('statusMsg').style.color = '#f39c12';
             }
         }
+
         async function dailyResetCurrent() {
             const cfg = TABS_CONFIG[activeTab];
             const pwd = await askPassword('🔑 رمز مدیریت برای ریست روزانه «' + cfg.name + '»:');
@@ -1586,7 +1576,11 @@
 
             document.getElementById('addNumberBtn').onclick = addCustom;
             document.getElementById('subtractBtn').onclick = subtractCustom;
-            document.getElementById('autoAddSaveBtn').onclick = saveAutoAdd;
+            document.getElementById('autoAddSalavatBtn').onclick = () => saveAutoAdd('auto_add_salavat', 'autoAddSalavatInput');
+            document.getElementById('autoAddEstegfarBtn').onclick = () => saveAutoAdd('auto_add_estegfar', 'autoAddEstegfarInput');
+            document.getElementById('autoAddDoa14Btn').onclick = () => saveAutoAdd('auto_add_doa14', 'autoAddDoa14Input');
+            document.getElementById('autoAddFathBtn').onclick = () => saveAutoAdd('auto_add_fath', 'autoAddFathInput');
+            document.getElementById('autoAddTavasolBtn').onclick = () => saveAutoAdd('auto_add_tavasol', 'autoAddTavasolInput');
 
             document.getElementById('addInput').addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
