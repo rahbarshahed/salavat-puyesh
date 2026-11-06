@@ -1192,7 +1192,10 @@
         // ============================================================
         //  ریست خودکار شبانه ساعت ۲ بامداد (برای هر تب جداگانه)
         // ============================================================
-            async function checkAndAutoReset() {
+        // ============================================================
+        //  ریست خودکار شبانه ساعت ۲ بامداد (برای هر تب جداگانه)
+        // ============================================================
+        async function checkAndAutoReset() {
             const now = new Date();
             const hour = now.getHours();
             const today = now.toISOString().slice(0, 10);
@@ -1241,20 +1244,6 @@
                 document.getElementById('statusMsg').style.color = '#f39c12';
             }
         }
-            if (!hasChange) {
-                localStorage.setItem('salavat_last_auto_reset', today);
-                return;
-            }
-
-            const success = await updateData(newData);
-            if (success) {
-                localStorage.setItem('salavat_last_auto_reset', today);
-                updateDisplay();
-                document.getElementById('statusMsg').innerHTML = '🌙 ریست خودکار شبانه با موفقیت انجام شد.';
-                document.getElementById('statusMsg').style.color = '#f39c12';
-            }
-        }
-
         async function dailyResetCurrent() {
             const cfg = TABS_CONFIG[activeTab];
             const pwd = await askPassword('🔑 رمز مدیریت برای ریست روزانه «' + cfg.name + '»:');
